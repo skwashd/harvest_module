@@ -1,0 +1,9 @@
+; $Id$ 
+
+name = Harvest Notifications
+description = "Provides various harvest project notifications."
+core = 6.x
+package = Harvest
+dependencies[] = harvest
+dependencies[] = harvest_projects
+dependencies[] = token

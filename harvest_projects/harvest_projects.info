@@ -1,0 +1,7 @@
+; $Id$ 
+
+name = Harvest Projects
+description = "Provides a project management system that integrates into your harvest account."
+core = 6.x
+package = Harvest
+dependencies[] = harvest
