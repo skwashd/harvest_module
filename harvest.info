@@ -1,0 +1,6 @@
+; $Id$ 
+
+name = Harvest API
+description = "Provides a link between Drupal and the harvest API."
+core = 6.x
+package = Harvest
