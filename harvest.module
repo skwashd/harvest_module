@@ -1,6 +1,4 @@
 <?php
-// $Id$ 
-
 /**
  * @file
  * Provides a link between Drupal and the harvest API.
@@ -85,7 +83,7 @@ function harvest_request($type, $options = array(), $reset = FALSE) {
   );  
   
   // Execute the request, check the response code (200 is successfull).
-  $return = drupal_http_request((!empty($options['url']) ? $options['url'] : variable_get('harvest_url', '')) .'/'. $type, $headers);
+  $return = drupal_http_request((!empty($options['url']) ? $options['url'] : variable_get('harvest_url', '')) .'/'. $type, $headers); dpm($return);
   $harvest_request_total++;
 	if (empty($return->code)) {
 		return FALSE;

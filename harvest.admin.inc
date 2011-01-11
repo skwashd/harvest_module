@@ -1,6 +1,4 @@
 <?php
-// $Id$ 
-
 /**
  * @file
  * Administration functions for the harvest API.
@@ -83,8 +81,8 @@ function harvest_settings_form_validate($form, $form_state) {
   // Test the settings with an actual request to the API.
   if (!form_get_errors()) {
     $login = strlen(trim($form_state['values']['pass'])) ? base64_encode(trim($form_state['values']['email']) .':'. trim($form_state['values']['pass'])) : variable_get('harvest_login', '');
-    if (harvest_request('people', array('return' => 'code', 'url' => $form_state['values']['url'], 'login' => $login), TRUE) != '200') {
-			form_set_error('', t('An error occured accessing the harvest API, please double check your account settings.'));
+    if (($req = harvest_request('people', array('return' => 'code', 'url' => $form_state['values']['url'], 'login' => $login), TRUE)) != '200') {
+			form_set_error('', t('An error occurred accessing the harvest API, please double check your account settings.'));
 		}
   }
 }
