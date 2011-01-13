@@ -350,9 +350,20 @@ function harvest_projects_category_access($category, $account = NULL) {
     return TRUE;
   }
   else {
-    foreach ($account->roles as $rid => $role_name) {
-      if ($category->roles[$rid]) {
-        return TRUE;
+    $all_empty = TRUE;
+    foreach ($category->roles as $value) {
+      if ($value != 0) {
+        $all_empty = FALSE;
+      }
+    }
+    if ($all_empty) {
+      return TRUE;
+    }
+    else {
+      foreach ($account->roles as $rid => $role_name) {
+        if ($category->roles[$rid]) {
+          return TRUE;
+        }
       }
     }
   }  
