@@ -9,6 +9,14 @@
  * Menu callback; form for managing project settings.
  */
 function harvest_projects_settings_form() {
+  $content_type_names = node_type_get_names();
+  $form['harvest_projects_content_types_to_attach_to'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Attach to Content Types'),
+    '#default_value' => variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project')),
+    '#options' => $content_type_names,
+    '#description' => t('Choose which content types should have the option to have Harvest Project time reports associated with them. You must select at least one to make use of the Harvest Project module'),
+  );
   $form['harvest_projects_non-billable_access'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Non-Billable Roles Access'),
@@ -280,7 +288,7 @@ function harvest_projects_tasks_form_submit(&$form, $form_state) {
  * Themes the task organization form.
  */
 function theme_harvest_projects_tasks_form($variables) {
-  $form = current($variables);
+  $form = $variables['form'];
   $output = '';
 
   // Build the table header.
@@ -295,17 +303,23 @@ function theme_harvest_projects_tasks_form($variables) {
   $categorized_rows[0] = array();
 
   // Build the table rows from the categories.
-  foreach (element_children($form['tid']) as $task_id) {
-    render($form['tid'][$task_id]);
-    $categorized_rows[(is_numeric($form['category'][$task_id]['#default_value']) ? $form['category'][$task_id]['#default_value'] : 0)][] = array(
-      'data' => array(
-        array('data' => render($form['name'][$task_id]), 'class' => array('name-column')),
-        array('data' => render($form['category'][$task_id]), 'class' => array('category-column')),
-        render($form['weight'][$task_id]),
-      ),
-      'class' => array('draggable'),
-    );
+  if (isset($form['tid'])) {
+    $children = element_children($form['tid']);
   }
+  if(isset($children)){
+    foreach ($children as $task_id) {
+      render($form['tid'][$task_id]);
+      $categorized_rows[(is_numeric($form['category'][$task_id]['#default_value']) ? $form['category'][$task_id]['#default_value'] : 0)][] = array(
+        'data' => array(
+          array('data' => render($form['name'][$task_id]), 'class' => array('name-column')),
+          array('data' => render($form['category'][$task_id]), 'class' => array('category-column')),
+          render($form['weight'][$task_id]),
+        ),
+        'class' => array('draggable'),
+      );
+    }
+  }
+  
 
   // Put the categorized rows of tasks into actual table rows.
   foreach ($categorized_rows as $cid => $tasks) {

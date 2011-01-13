@@ -213,9 +213,9 @@ function harvest_notifications_send($type, $data) {
 function harvest_notifications_mail($key, &$message, $params) {
   $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
   $message['subject'] = harvest_notifications_variable("harvest_notifications_{$key}_subject");
-  $message['subject'] = token_replace($message['subject'], 'harvest_notifications', $params['data']);
+  $message['subject'] = token_replace($message['subject'], array('harvest_notifications' => $params['data']));
   $message['body'][0] = nl2br(harvest_notifications_variable("harvest_notifications_{$key}_body"));
-  $message['body'][0] = token_replace($message['body'][0], 'harvest_notifications', $params['data']);
+  $message['body'][0] = token_replace($message['body'][0], array('harvest_notifications' => $params['data']));
 }
 
 /**
@@ -239,7 +239,7 @@ function harvest_notifications_userlist($roles) {
   $accounts = array();
   foreach ($result as $account) {
     $account->data = unserialize($account->data);
-    $account->harvest_account = $account->data['harvest_account'];
+    $account->harvest_account = $account->data['harvest_projects']['harvest_account'];
     unset($account->data);
     $accounts[$account->uid] = $account;
   }

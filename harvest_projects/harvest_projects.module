@@ -148,7 +148,7 @@ function harvest_projects_menu() {
 function harvest_projects_tasks_node_access() {
   if (arg(0) == 'node' && is_numeric(arg(1))) {
     $node = node_load(arg(1));
-    if ($node->type == 'harvest_project') {
+    if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array()))) {
       return user_access('administer harvest projects');
     }
   }
@@ -159,8 +159,37 @@ function harvest_projects_tasks_node_access() {
  * Implements hook_form_alter().
  */
 function harvest_projects_form_alter(&$form, &$form_state, $form_id) {
+  // Get a list of nodes that are enabled for harvest_projects and make them into the form of XXX_node_form so we can match against it.
+  $enabled_node_types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'));
+  foreach ($enabled_node_types as $key => $val) {
+    if (!$val) {
+      unset($enabled_node_types[$key]);
+    }
+    else {
+      $enabled_node_types[$key] = $val . '_node_form';
+    }
+  }
+  
+  // Attach harvest_projects form fields if it is enabled for this.
+  if (in_array($form_id, $enabled_node_types)) {
+    $form['harvest_projects'] = array(
+      '#type' => 'fieldset',
+      '#group' => 'additional_settings',
+      '#title' => t('Harvest Projects settings'),
+    );
+    $form['harvest_projects']['harvest_project'] = array(
+      '#type' => 'select',
+      '#title' => t('Select harvest project'),
+      '#description' => t('Choose the harvest project which this drupal project will be linked to.'),
+      '#options' => array_merge(array('0' => t('<None>')), harvest_projects_list()),
+      '#required' => FALSE,
+      '#default_value' => isset($form['#node']->harvest_project) ? $form['#node']->harvest_project : '',
+      '#weight' => -4,
+    );
+  }
+  
   switch ($form_id) {
-    case '':
+    case 'user_profile_form':
       global $user;
       $account = user_load($user->uid);
 
@@ -168,30 +197,43 @@ function harvest_projects_form_alter(&$form, &$form_state, $form_id) {
         // Create list of people for select list.
         $people_raw = harvest_request('people');
         $people_list = array(0 => t('<none>'));
-        foreach ($people_raw as $person_id => $values) {
-          $people_list[$person_id] = $values['first-name'] . ' ' . $values['last-name'];
+        if (is_array($people_raw)) {
+          foreach ($people_raw as $person_id => $values) {
+            $people_list[$person_id] = $values['last-name'] . ', ' . $values['first-name'];
+          }
         }
 
         // Only make additions to form when API is responding.
         if (count($people_list) > 1) {
-          $form['harvest'] = array(
+          $form['harvest_projects'] = array(
             '#type' => 'fieldset',
-            '#title' => t('Harvest settings'),
+            '#title' => t('Harvest Projects settings'),
             '#collapsible' => TRUE,
             '#collapsed' => FALSE,
+            '#tree' => TRUE,
           );
-          $form['harvest']['harvest_account'] = array(
+          $form['harvest_projects']['harvest_account'] = array(
             '#type' => 'select',
             '#title' => t('Harvest account'),
             '#description' => t('Select the harvest account which will be linked to this user.'),
             '#options' => $people_list,
-            '#default_value' => $account->harvest_account
+            '#default_value' => isset($account->data['harvest_projects']['harvest_account']) ? $account->data['harvest_projects']['harvest_account'] : '',
           );
         }
       }
       break;
     default:
       break;
+  }
+}
+
+/**
+ * Implements hook_user_presave().
+ */
+function harvest_projects_user_presave(&$edit, $account, $category) {
+  // Make sure that our form value 'mymodule_foo' is stored as 'mymodule_bar'.
+  if (isset($edit['harvest_projects']['harvest_account'])) {
+    $edit['data']['harvest_projects']['harvest_account'] = $edit['harvest_projects']['harvest_account'];
   }
 }
 
@@ -219,7 +261,7 @@ function harvest_projects_block_view($delta = '') {
     case 'project_overview':
       if (arg(0) == 'node' && is_numeric(arg(1))) {
         $node = node_load(arg(1));
-        if ($node->type == 'harvest_project') {
+        if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project')))) {
           $block['subject'] = t('Project overview');
           $block['content'] = theme('harvest_projects_overview', $node);
         }
@@ -296,12 +338,13 @@ function harvest_projects_node_access($node, $op, $account) {
  */
 function harvest_projects_options() {
   $options = array();
+  $enabled_node_types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'));
 
   //$result = db_query("SELECT nid FROM {node} n WHERE status = :status AND type = :type ORDER BY title ASC", array(':status' => 1, ':type' => 'harvest_project'));
   $query = db_select('node', 'n');
   $query
     ->condition('n.status', 1)
-    ->condition('n.type', 'harvest_project');
+    ->condition('n.type', $enabled_node_types, 'IN');
   $result = $query->execute();
 
   foreach ($result as $data) {
@@ -386,8 +429,16 @@ function harvest_projects_can_access_category($category, $account = NULL) {
   if (!$account || !$account->uid) {
     $account = user_load($user->uid);
   }
-
-  if ($account->uid == 1 || empty($category->roles)) {
+  
+  // Check to see if no roles are checked
+  $all_empty = TRUE;
+  foreach ($category->roles as $value) {
+    if ($value != 0) {
+      $all_empty = FALSE;
+    }
+  }
+  
+  if ($account->uid == 1 || $all_empty) {
     return TRUE;
   }
   else {
@@ -851,19 +902,8 @@ function harvest_projects_form(&$node) {
   $body_field_info = field_info_field('body');
 
   if (in_array('harvest_project', $body_field_info['bundles']['node'])) {
-    //dpm($body_field_info);
     //$form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
-
-  $form['project'] = array(
-    '#type' => 'select',
-    '#title' => t('Select harvest project'),
-    '#description' => t('Choose the harvest project which this drupal project will be linked to.'),
-    '#options' => harvest_projects_list(),
-    '#required' => TRUE,
-    '#default_value' => isset($node->harvest_project) ? $node->harvest_project : '',
-    '#weight' => -4,
-  );
 
   return $form;
 }
@@ -871,30 +911,33 @@ function harvest_projects_form(&$node) {
 /**
  * Implements hook_insert().
  */
-function harvest_projects_insert($node) {
-  harvest_projects_save_assignment(NULL, 'harvest_project', $node->nid, $node->project);
+function harvest_projects_node_insert($node) {
+  harvest_projects_save_assignment(NULL, 'harvest_project', $node->nid, $node->harvest_project);
+
 }
 
 /**
  * Implements hook_update().
  */
-function harvest_projects_update($node) {
-  harvest_projects_save_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'), 'harvest_project', $node->nid, $node->project);
+function harvest_projects_node_update($node) {
+  harvest_projects_save_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'), 'harvest_project', $node->nid, $node->harvest_project);
 }
 
 /**
  * Implements hook_delete().
  */
-function harvest_projects_delete($node) {
+function harvest_projects_node_delete($node) {
   harvest_projects_delete_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'));
 }
 
 /**
  * Implements hook_load().
  */
-function harvest_projects_load($nodes) {
+function harvest_projects_node_load($nodes, $types) {
   foreach ($nodes as $node) {
-    $nodes[$node->nid]->harvest_project = harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid);
+    if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array()))) {
+      $nodes[$node->nid]->harvest_project = harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid);
+    }
     if (!isset($node->comment_count)) $nodes[$node->nid]->comment_count = 0;
   }
 }
@@ -902,11 +945,13 @@ function harvest_projects_load($nodes) {
 /**
  * Implements hook_view().
  */
-function harvest_projects_view($node) {
+function harvest_projects_node_view($node, $view_mode, $langcode) {
   // $node = node_prepare($node, $teaser); // d6 relic?
-  $node->content['timesheet'] = array(
-    '#markup' => theme('harvest_projects_timesheet', array('node' => $node)),
-  );
+  if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array())) && $node->harvest_project) {
+    $node->content['timesheet'] = array(
+      '#markup' => theme('harvest_projects_timesheet', array('node' => $node)),
+    );
+  }
   return $node;
 }
 

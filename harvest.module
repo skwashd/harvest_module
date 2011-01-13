@@ -54,7 +54,7 @@ function harvest_request($type, $options = array(), $reset = FALSE) {
   $type = trim($type, '/');
 
   // Only return the cache when reset is false.
-  if (0 && !$reset) {
+  if (!$reset) {
     $cache = cache_get($type, 'cache_harvest');
     if (!empty($cache) && (REQUEST_TIME - $cache->created) <= variable_get('harvest_cache_life', '3600')) {
       return $cache->data;
