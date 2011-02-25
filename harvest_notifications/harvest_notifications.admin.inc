@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Administration functions for harvest notifications.
