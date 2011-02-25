@@ -1,4 +1,3 @@
-; $Id$ 
 
 name = Harvest Status
 description = "Provides a block to monitor individual and team status in from Harvest."
