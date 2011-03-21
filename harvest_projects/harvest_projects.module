@@ -704,7 +704,6 @@ function harvest_projects_get_statistics($project_id, $vars = array()) {
   else {
     $entries = harvest_request("projects/{$project_id}/entries?from=19000101&to=" . date("Ymd"));
   }
-  dpm($entries, 'entries');
 
   if (!count($tasks)) {
     return FALSE;

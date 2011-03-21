@@ -1,6 +1,6 @@
 <?php
 
-class harvest_plugin_query_harvest extends views_plugin_query {
+class harvest_plugin_query_harvest extends views_plugin_query_default {
   
   /**
    * Constructor; Create the basic query object and fill with default values.
@@ -111,7 +111,7 @@ class harvest_plugin_query_harvest extends views_plugin_query {
     $args = array();
     if (is_array($this->orderby) && count($this->orderby)) {
       foreach ($this->orderby as $orderby) {
-        $tmp = array(); dpm($data); dpm($orderby);
+        $tmp = array();
         foreach ($data as $key => $row) {
           $tmp[$key] = $row[$orderby['field']];
         }
@@ -142,9 +142,7 @@ class harvest_plugin_query_harvest extends views_plugin_query {
     if (isset($view->build_info)) {
       $query = $view->build_info['query'];
     }
-    
-    dpm($view); dpm($view->argument['project_id']);
-    
+
     if (1) { // if $query
       $start = $this->microtime();
       $data = $this->get_base_data();
@@ -167,7 +165,7 @@ class harvest_plugin_query_harvest extends views_plugin_query {
         if (isset($first_row['client-id'])) {
           $related_data['client-id']['data'] = harvest_request('clients');
           $first = current($data);
-          $second = current($related_data['client-id']['data']); dpm($second);
+          $second = current($related_data['client-id']['data']);
           //$related_data['client-id']['intersects'] = array_intersect_key($first, $second);
           $related_data['client-id']['intersects'] = array_keys($second);
         }
@@ -178,9 +176,7 @@ class harvest_plugin_query_harvest extends views_plugin_query {
       
       // Sort
       $this->apply_sort($data);
-      
-      dpm($data, $this->base_table . ' table');
-      
+
       if (is_array($data)) {
         foreach ($data as $key => $val) {
           $view->result[$key] = (object) $val;

@@ -14,7 +14,6 @@ function harvest_notifications_cron() {
 }
 
 function _harvest_notifications_test() {
-  dpm(token_info());
   harvest_notifications_daily();
   return '';
 }
@@ -392,10 +391,10 @@ function harvest_notifications_daily() {
     // If lastsend is not an array, reset it.
     if (!is_array($lastsend)) {
       $lastsend = array();
-    } dpm($lastsend, '$lastsend'); $lastsend = array();
+    }
 
     // Load up the people, projects, and tasks.
-    $people = harvest_request('people'); dpm($people, '$people');
+    $people = harvest_request('people');
     $projects = harvest_request('projects', array('type modifier' => 'projects_by_id'));
     $tasks = harvest_request('tasks');
 
