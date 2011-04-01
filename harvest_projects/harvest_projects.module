@@ -188,8 +188,6 @@ function harvest_projects_form_alter(&$form, &$form_state, $form_id) {
       '#weight' => -4,
       '#required' => TRUE,
     );
-    
-    dpm($form);
   }
   
   switch ($form_id) {
@@ -267,7 +265,7 @@ function harvest_projects_block_view($delta = '') {
         $node = node_load(arg(1));
         if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project')))) {
           $block['subject'] = t('Project overview');
-          $block['content'] = theme('harvest_projects_overview', $node);
+          $block['content'] = theme('harvest_projects_overview', array('node' => $node));
         }
       }
       break;
@@ -296,7 +294,7 @@ function harvest_projects_jump_form() {
  * Processes a request to jump to a project.
  */
 function harvest_projects_jump_form_submit(&$form, &$form_state) {
-  $form['#redirect'] = "node/{$form_state['values']['project']}";
+  drupal_goto("node/{$form_state['values']['project']}");
 }
 
 /**
@@ -346,9 +344,11 @@ function harvest_projects_options() {
 
   //$result = db_query("SELECT nid FROM {node} n WHERE status = :status AND type = :type ORDER BY title ASC", array(':status' => 1, ':type' => 'harvest_project'));
   $query = db_select('node', 'n');
+  $query->fields('n', array('nid'));
   $query
     ->condition('n.status', 1)
-    ->condition('n.type', $enabled_node_types, 'IN');
+    ->condition('n.type', $enabled_node_types, 'IN')
+    ->orderBy('n.title', 'ASC');
   $result = $query->execute();
 
   foreach ($result as $data) {
@@ -372,7 +372,7 @@ function harvest_projects_options() {
  */
 function harvest_projects_can_access_nonbillable($account = NULL) {
   global $user;
-  if (!$account->uid) {
+  if (!isset($account->uid)) {
     $account = $user;
   }
 
@@ -924,22 +924,30 @@ function harvest_projects_form(&$node) {
  * Implements hook_insert().
  */
 function harvest_projects_node_insert($node) {
-  harvest_projects_save_assignment(NULL, 'harvest_project', $node->nid, $node->harvest_project);
-
+  $types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project')); dpm($types); dpm($node->type);
+  if (isset($types[$node->type]) && $types[$node->type]) {
+    harvest_projects_save_assignment(NULL, 'harvest_project', $node->nid, $node->harvest_project);
+  }
 }
 
 /**
  * Implements hook_update().
  */
 function harvest_projects_node_update($node) {
-  harvest_projects_save_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'), 'harvest_project', $node->nid, $node->harvest_project);
+  $types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'));
+  if (isset($types[$node->type]) && $types[$node->type]) {
+    harvest_projects_save_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'), 'harvest_project', $node->nid, $node->harvest_project);
+  }
 }
 
 /**
  * Implements hook_delete().
  */
 function harvest_projects_node_delete($node) {
-  harvest_projects_delete_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'));
+  $types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'));
+  if (isset($types[$node->type]) && $types[$node->type]) {
+    harvest_projects_delete_assignment(harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid, 'aid'));
+  }
 }
 
 /**
@@ -959,12 +967,14 @@ function harvest_projects_node_load($nodes, $types) {
  */
 function harvest_projects_node_view($node, $view_mode, $langcode) {
   // $node = node_prepare($node, $teaser); // d6 relic?
-  $harvest_project = harvest_projects_get_assignment(NULL, 'harvest_project', $node->nid);
-  if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'))) && $harvest_project) {
-    $node->content['timesheet'] = array(
-      '#markup' => theme('harvest_projects_timesheet', array('node' => $node)),
-    );
+  if (variable_get('harvest_projects_table_display_choice', 'inline') == 'inline') {
+    if (in_array($node->type, variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'))) && $node->harvest_project) {
+      $node->content['timesheet'] = array(
+        '#markup' => theme('harvest_projects_timesheet', array('node' => $node)),
+      );
+    }
   }
+  
   return $node;
 }
 
@@ -1145,7 +1155,8 @@ function theme_harvest_projects_email_safe() {
 /**
  * Themes the harvest project overview block.
  */
-function theme_harvest_projects_overview($node) {
+function theme_harvest_projects_overview($vars = array()) {
+  $node = $vars['node'];
   $statistics = harvest_projects_get_statistics($node->harvest_project);
 
   // Default overview for the entire project.
@@ -1183,7 +1194,7 @@ function theme_harvest_projects_overview($node) {
     $items[] = t('<strong>Non-Billable Hours:</strong> !value', array('!value' => $nonbillable));
   }
 
-  return theme('item_list', $items);
+  return theme('item_list', array('items' => $items));
 }
 
 /**
@@ -1251,4 +1262,38 @@ function theme_harvest_projects_task_entries($node, $task_id) {
   }
 
   return $output;
+}
+
+/**
+ * Helper module for auto populating project content type title from auto_nodetitle module
+ *
+ * Sample PHP Snippet:
+ * <?php
+ * if (function_exists('_harvest_projects_auto_nodetitle')) {
+ *  return _harvest_projects_auto_nodetitle($node);
+ * }
+ * ?>
+ */
+function _harvest_projects_auto_nodetitle(&$node){
+  if (isset($_POST['harvest_project']) && is_numeric($_POST['harvest_project']) && $_POST['harvest_project'] > 0) {
+    $project_id = $_POST['harvest_project'];
+  }
+  else {
+    $result = db_select('harvest_assignments', 'ha')
+      ->condition('ha.id', $node->nid)
+      ->condition('type', 'harvest_project')
+      ->fields('ha')
+      ->execute()
+      ->fetch();
+    $project_id = $result->assignment;
+  }
+
+  if ($project_id) {
+    $projects = harvest_request('projects');
+    foreach ($projects as $project) {
+      if (array_key_exists($project_id, $project)) {
+        return $project[$project_id]['name'];
+      }
+    }
+  }
 }

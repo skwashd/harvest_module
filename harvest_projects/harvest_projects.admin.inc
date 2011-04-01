@@ -10,6 +10,15 @@
  */
 function harvest_projects_settings_form() {
   $content_type_names = node_type_get_names();
+  $form['harvest_projects_table_display_choice'] = array(
+    '#type' => 'radios',
+    '#title' => t('Use which table display for time usage statistics'),
+    '#default_value' => variable_get('harvest_projects_table_display_choice', 'inline'),
+    '#options' => array(
+      'inline' => 'Use built-in node table',
+      'views' => 'I will use my own Views block',
+    ),
+  );
   $form['harvest_projects_content_types_to_attach_to'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Attach to Content Types'),

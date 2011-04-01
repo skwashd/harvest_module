@@ -35,12 +35,25 @@ class harvest_plugin_query_harvest_statistics extends harvest_plugin_query_harve
       $this->where_php($statistics_data);
 
       foreach ($statistics_data['categories'] as $category_id => $category) {
+        // Add strong to all of the entries of the category
+        foreach ($category['category'] as $key => $val) {
+          $category['category'][$key] = '<strong>' . $val . '</strong>';
+        }
         $data[] = (object) array_merge($category['category'], array('category_id' => $category_id, 'task_id' => 0, 'task-name' => '<strong>' . $tasks_data[$category_id]['category']->name . '</strong>'));
         foreach ($category['tasks'] as $task_id => $task) {
           $data[] = (object) array_merge($task, array('category_id' => 0, 'task_id' => $task_id, 'task-name' => $tasks_data[$category_id]['tasks'][$task_id]['name']));
         }
       }
-      $data[] = (object) array_merge($statistics_data['overall'], array('category_id' => 0, 'task_id' => 0, 'task-name' => t('Totals (Billable Only):')));
+      
+      // Add em to all numbers of total
+      foreach ($statistics_data['overall'] as $key => $val) {
+        if ($key == 'progress') {
+          $statistics_data['overall'][$key] = '<em>' . $val . '</em>';
+        } else {
+          $statistics_data['overall'][$key] = '<em>' . number_format($val, 2) . '</em>';
+        }
+      }
+      $data[] = (object) array_merge($statistics_data['overall'], array('category_id' => 0, 'task_id' => 0, 'task-name' => '<em>Totals (Billable Only):</em>'));
     }
     
     $view->result = $data;

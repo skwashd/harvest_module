@@ -75,7 +75,6 @@ function harvest_status_form_alter(&$form, &$form_state, $form_id) {
           '#description' => t('Enter the password for your harvest account.'),
           '#size' => 28,
         );
-        $form['#submit'][] = '_harvest_status_user_submit';
         return $form;
       }
     break;
