@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Administration functions for harvest notifications.

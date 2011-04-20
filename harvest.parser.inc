@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Parses an XML output and puts into an organized array of values.
  *

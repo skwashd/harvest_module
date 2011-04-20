@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Administration functions for the harvest API.
@@ -68,23 +67,25 @@ function harvest_settings_form() {
 /**
  * Validates the harvest API settings; peforming a test request to the API.
  */
-function harvest_settings_form_validate($form, $form_state) {  
-  // Cache life must be a positive number.
-  if (!is_numeric($form_state['values']['cache_life']) || $form_state['values']['cache_life'] < 1) {
-    form_set_error('cache_life', t('Cache life must be a positive number.'));
-  }
-  
-  // Check if a password is defined when changing an existing email.
-  if (strlen(variable_get('harvest_email', '')) && variable_get('harvest_email', '') != trim($form_state['values']['email']) && !strlen(trim($form_state['values']['pass']))) {
-    form_set_error('pass', t('Password is required to change the email address.'));
-  }
-  
-  // Test the settings with an actual request to the API.
-  if (!form_get_errors()) {
-    $login = strlen(trim($form_state['values']['pass'])) ? base64_encode(trim($form_state['values']['email']) .':'. trim($form_state['values']['pass'])) : variable_get('harvest_login', '');
-    if (harvest_request('people', array('return' => 'code', 'url' => $form_state['values']['url'], 'login' => $login), TRUE) != '200') {
-			form_set_error('', t('An error occured accessing the harvest API, please double check your account settings.'));
-		}
+function harvest_settings_form_validate($form, $form_state) {
+  if ($form_state['clicked_button']['#id'] == 'edit-submit') {
+    // Cache life must be a positive number.
+    if (!is_numeric($form_state['values']['cache_life']) || $form_state['values']['cache_life'] < 1) {
+      form_set_error('cache_life', t('Cache life must be a positive number.'));
+    }
+
+    // Check if a password is defined when changing an existing email.
+    if (strlen(variable_get('harvest_email', '')) && variable_get('harvest_email', '') != trim($form_state['values']['email']) && !strlen(trim($form_state['values']['pass']))) {
+      form_set_error('pass', t('Password is required to change the email address.'));
+    }
+
+    // Test the settings with an actual request to the API.
+    if (!form_get_errors()) {
+      $login = strlen(trim($form_state['values']['pass'])) ? base64_encode(trim($form_state['values']['email']) .':'. trim($form_state['values']['pass'])) : variable_get('harvest_login', '');
+      if (($req = harvest_request('people', array('return' => 'code', 'url' => $form_state['values']['url'], 'login' => $login), TRUE)) != '200') {
+  			form_set_error('', t('An error occurred accessing the harvest API, please double check your account settings.'));
+  		}
+    }
   }
 }
 
@@ -92,7 +93,7 @@ function harvest_settings_form_validate($form, $form_state) {
  * Processes the harvest API settings form, combing the email and password using base64.
  */
 function harvest_settings_form_submit($form, $form_state) {
-  if ($form_state['clicked_button']['#value'] == 'Save configuration') {
+  if ($form_state['clicked_button']['#id'] == 'edit-submit') {
     variable_set('harvest_cache_life', $form_state['values']['cache_life']);
     variable_set('harvest_url', trim($form_state['values']['url']));
     if (variable_get('harvest_email', '') != trim($form_state['values']['email']) || (strlen(variable_get('harvest_login', '')) && strlen(trim($form_state['values']['pass'])))) {

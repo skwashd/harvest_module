@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Provides a link between Drupal and the harvest API.
