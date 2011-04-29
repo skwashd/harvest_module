@@ -343,7 +343,7 @@ function harvest_notifications_weekly() {
     if (($lastsend === 0 && $sendon == date('l')) || ($lastsend > 0 && $last_sending_day > $lastsend && $sendon == date('l'))) {
       $sendon_timestamp = date('l') == $sendon ? mktime(0, 0, 0, date('n'), date('j'), date('Y')) : strtotime("last $sendon");
 
-      $internal_projects = db_query("SELECT nid FROM {node} WHERE status = 1 AND type = 'project'");
+      $internal_projects = db_query("SELECT nid FROM {node} WHERE status = 1 AND type = 'harvest_project'");
       while ($node = db_fetch_object($internal_projects)) {
         if (variable_get("harvest_project_{$node->nid}_weekly_notification", 0)) {
           $node = node_load($node->nid);
