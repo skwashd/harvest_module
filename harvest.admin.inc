@@ -7,7 +7,7 @@
 /**
  * Menu callback; Form for harvest API settings.
  */
-function harvest_settings_form() {  
+function harvest_settings_form() {
   // General module settings.
   $form['cache'] = array(
     '#type' => 'fieldset',
@@ -22,7 +22,7 @@ function harvest_settings_form() {
     '#required' => TRUE,
     '#default_value' => variable_get('harvest_cache_life', '3600'),
   );
-  
+
   // Account specific settings; includes URL, email, and password.
   $form['account'] = array(
     '#type' => 'fieldset',
@@ -51,7 +51,7 @@ function harvest_settings_form() {
     '#required' => variable_get('harvest_login', '') ? FALSE : TRUE,
     '#prefix' => variable_get('harvest_login', '') ? t('<div class="warning">Password has been saved, you can specify a new one below.</div>') : '',
   );
-  
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save configuration'),
@@ -60,7 +60,7 @@ function harvest_settings_form() {
     '#type' => 'submit',
     '#value' => t('Reset to defaults'),
   );
-  
+
   return $form;
 }
 
@@ -83,8 +83,8 @@ function harvest_settings_form_validate($form, $form_state) {
     if (!form_get_errors()) {
       $login = strlen(trim($form_state['values']['pass'])) ? base64_encode(trim($form_state['values']['email']) .':'. trim($form_state['values']['pass'])) : variable_get('harvest_login', '');
       if (($req = harvest_request('people', array('return' => 'code', 'url' => $form_state['values']['url'], 'login' => $login), TRUE)) != '200') {
-  			form_set_error('', t('An error occurred accessing the harvest API, please double check your account settings.'));
-  		}
+        form_set_error('', t('An error occurred accessing the harvest API, please double check your account settings.'));
+      }
     }
   }
 }

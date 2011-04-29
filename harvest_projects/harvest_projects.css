@@ -2,7 +2,7 @@
  * Jump to Project
  */
 #harvest-projects-jump-form #edit-project-wrapper {
-	display: inline;
+  display: inline;
 }
 
 /**
@@ -10,12 +10,12 @@
  */
 tr.category-row,
 tr.date-row {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 /**
  * Task Organizational Form
  */
 form#harvest-projects-tasks-form table td.name-column {
-	width: 100%;
+  width: 100%;
 }

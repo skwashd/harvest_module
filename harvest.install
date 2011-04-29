@@ -3,14 +3,14 @@
  * Implementation of hook_install().
  */
 function harvest_install() {
-	drupal_install_schema('harvest');
+  drupal_install_schema('harvest');
 }
 
 /**
  * Implementation of hook_uninstall().
  */
 function harvest_uninstall() {
-	variable_del('harvest_cache_life');
+  variable_del('harvest_cache_life');
   variable_del('harvest_url');
   variable_del('harvest_email');
   variable_del('harvest_login');
@@ -20,6 +20,6 @@ function harvest_uninstall() {
  * Implementation of hook_schema().
  */
 function harvest_schema() {
-	$schema['cache_harvest'] = drupal_get_schema_unprocessed('system', 'cache');
-	return $schema;
+  $schema['cache_harvest'] = drupal_get_schema_unprocessed('system', 'cache');
+  return $schema;
 }
