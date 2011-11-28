@@ -404,10 +404,10 @@ function harvest_notifications_report() {
 
       foreach ($accounts as $account) {
         if (is_numeric($account->harvest_account)) {
-          $report_link  = trim(variable_get('harvest_url', ''), '/') ."/reports/total_hours_person";
-          $report_link .= "?start_date=". date('m/d/Y', $report_startdate);
-          $report_link .= "&end_date=". date('m/d/Y', $report_enddate);
-          $report_link .= "&person_id={$account->harvest_account}";
+          $report_link  = trim(variable_get('harvest_url', ''), '/') ."/reports/users/{$account->harvest_account}";
+          $report_link .= "?from=". date('Ymd', $report_startdate);
+          $report_link .= "&kind=custom";
+          $report_link .= "&till=". date('Ymd', $report_enddate);
           harvest_notifications_send('report', array('account' => $account, 'interval' => format_plural($interval_weeks, 'week', '@count weeks'), 'link' => $report_link));
         }
       }
