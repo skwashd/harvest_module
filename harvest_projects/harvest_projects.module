@@ -924,7 +924,7 @@ function harvest_projects_form(&$node) {
  * Implements hook_insert().
  */
 function harvest_projects_node_insert($node) {
-  $types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project')); dpm($types); dpm($node->type);
+  $types = variable_get('harvest_projects_content_types_to_attach_to', array('harvest_project'));
   if (isset($types[$node->type]) && $types[$node->type]) {
     harvest_projects_save_assignment(NULL, 'harvest_project', $node->nid, $node->harvest_project);
   }
