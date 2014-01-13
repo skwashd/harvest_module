@@ -6,6 +6,9 @@ package = Harvest
 dependencies[] = harvest
 dependencies[] = harvest_projects
 dependencies[] = token
+
+configure = admin/config/services/harvest/notifications
+
 files[] = harvest_notifications.admin.inc
 files[] = harvest_notifications.module
 files[] = harvest_notifications.test

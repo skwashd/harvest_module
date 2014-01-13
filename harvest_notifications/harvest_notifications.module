@@ -35,7 +35,7 @@ function harvest_notifications_theme() {
 function harvest_notifications_menu() {
   $items = array();
 
-  $items['admin/harvest/notifications'] = array(
+  $items['admin/config/services/harvest/notifications'] = array(
     'title' => 'Notifications',
     'description' => 'Configure notification settings and templates.',
     'page callback' => 'drupal_get_form',
@@ -44,13 +44,13 @@ function harvest_notifications_menu() {
     'file' => 'harvest_notifications.admin.inc',
   );
 
-  $items['admin/harvest/notifications/general'] = array(
+  $items['admin/config/services/harvest/notifications/general'] = array(
     'title' => 'General settings',
     'access arguments' => array('administer site configuration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
-  $items['admin/harvest/notifications/timezones'] = array(
+  $items['admin/config/services/harvest/notifications/timezones'] = array(
     'title' => 'Timezone settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('harvest_notifications_timezones_form'),
@@ -58,7 +58,7 @@ function harvest_notifications_menu() {
     'file' => 'harvest_notifications.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/harvest/notifications/test'] = array(
+  $items['admin/config/services/harvest/notifications/test'] = array(
     'title' => 'Test',
     'page callback' => '_harvest_notifications_test',
     'access arguments' => array('administer site configuration'),

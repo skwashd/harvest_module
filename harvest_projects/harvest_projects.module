@@ -77,7 +77,7 @@ function harvest_projects_init() {
  * Implements hook_menu().
  */
 function harvest_projects_menu() {
-  $items['admin/harvest/projects'] = array(
+  $items['admin/config/services/harvest/projects'] = array(
     'title' => 'Project settings',
     'description' => 'Configure harvest project settings.',
     'page callback' => 'drupal_get_form',
@@ -85,7 +85,7 @@ function harvest_projects_menu() {
     'access arguments' => array('administer harvest projects'),
     'file' => 'harvest_projects.admin.inc',
   );
-  $items['admin/harvest/categories'] = array(
+  $items['admin/config/services/harvest/categories'] = array(
     'title' => 'Task categories',
     'description' => 'Manage organizational task categories.',
     'page callback' => 'drupal_get_form',
@@ -93,12 +93,12 @@ function harvest_projects_menu() {
     'access arguments' => array('administer harvest projects'),
     'file' => 'harvest_projects.admin.inc',
   );
-  $items['admin/harvest/categories/list'] = array(
+  $items['admin/config/services/harvest/categories/list'] = array(
     'title' => 'List',
     'weight' => -1,
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
-  $items['admin/harvest/categories/add'] = array(
+  $items['admin/config/services/harvest/categories/add'] = array(
     'title' => 'Add category',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('harvest_projects_category_form'),
@@ -106,7 +106,7 @@ function harvest_projects_menu() {
     'file' => 'harvest_projects.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/harvest/categories/edit/%'] = array(
+  $items['admin/config/services/harvest/categories/edit/%'] = array(
     'title' => 'Edit category',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('harvest_projects_category_form', 4),
@@ -114,7 +114,7 @@ function harvest_projects_menu() {
     'file' => 'harvest_projects.admin.inc',
     'type' => MENU_CALLBACK,
   );
-  $items['admin/harvest/categories/delete/%'] = array(
+  $items['admin/config/services/harvest/categories/delete/%'] = array(
     'title' => 'Delete category',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('harvest_projects_delete_category_form', 4),

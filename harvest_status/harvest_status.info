@@ -6,4 +6,7 @@ core = 7.x
 package = Harvest
 dependencies[] = harvest
 dependencies[] = harvest_projects
+
+configure = admin/config/services/harvest/status
+
 files[] = harvest_status.module
